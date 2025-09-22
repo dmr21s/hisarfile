@@ -1,9 +1,7 @@
-@app.before_request
-def show_environ():
-    print("==== HEADERS ====")
-    for k, v in request.headers.items():
-        print(k, ":", v)
-    print("==== ENVIRON ====")
-    for k, v in request.environ.items():
-        if "USER" in k or "AUTH" in k:
-            print(k, ":", v)
+@app.route("/whoami")
+def whoami():
+    return {
+        "REMOTE_USER": request.environ.get("REMOTE_USER"),
+        "AUTH_USER": request.environ.get("AUTH_USER"),
+        "LOGON_USER": request.environ.get("LOGON_USER"),
+    }
