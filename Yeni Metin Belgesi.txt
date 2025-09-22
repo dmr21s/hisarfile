@@ -14,19 +14,18 @@
       </authentication>
     </security>
 
-    <!-- URL Rewrite ile REMOTE_USER'ı header olarak Flask'a gönder -->
+    <!-- Reverse Proxy: gelen istekleri Flask'ın 5000 portuna yönlendir -->
     <rewrite>
-      <outboundRules>
-        <rule name="Add Remote User Header" preCondition="ResponseIsHtml1">
-          <match serverVariable="HTTP_X_REMOTE_USER" pattern=".*" />
-          <action type="Rewrite" value="{LOGON_USER}" />
+      <rules>
+        <rule name="ReverseProxyToFlask" stopProcessing="true">
+          <match url="(.*)" />
+          <action type="Rewrite" url="http://localhost:5000/{R:1}" />
+          <serverVariables>
+            <!-- Flask'a user bilgisini header olarak gönder -->
+            <set name="HTTP_X_REMOTE_USER" value="{LOGON_USER}" />
+          </serverVariables>
         </rule>
-        <preConditions>
-          <preCondition name="ResponseIsHtml1">
-            <add input="{RESPONSE_CONTENT_TYPE}" pattern="^text/html" />
-          </preCondition>
-        </preConditions>
-      </outboundRules>
+      </rules>
     </rewrite>
 
   </system.webServer>
