@@ -1,1 +1,9 @@
-https://drive.google.com/drive/folders/1fVsuF5k_jmCF9ThnOpVu2REHIZESg1wJ?usp=sharing
+@app.before_request
+def show_environ():
+    print("==== HEADERS ====")
+    for k, v in request.headers.items():
+        print(k, ":", v)
+    print("==== ENVIRON ====")
+    for k, v in request.environ.items():
+        if "USER" in k or "AUTH" in k:
+            print(k, ":", v)
