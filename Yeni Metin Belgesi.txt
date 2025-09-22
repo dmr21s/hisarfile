@@ -1,7 +1,33 @@
-@app.route("/whoami")
-def whoami():
-    return {
-        "REMOTE_USER": request.environ.get("REMOTE_USER"),
-        "AUTH_USER": request.environ.get("AUTH_USER"),
-        "LOGON_USER": request.environ.get("LOGON_USER"),
-    }
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <system.webServer>
+
+    <!-- Authentication ayarları -->
+    <security>
+      <authentication>
+        <anonymousAuthentication enabled="false" />
+        <windowsAuthentication enabled="true" useKernelMode="false">
+          <providers>
+            <add value="NTLM" />
+          </providers>
+        </windowsAuthentication>
+      </authentication>
+    </security>
+
+    <!-- URL Rewrite ile REMOTE_USER'ı header olarak Flask'a gönder -->
+    <rewrite>
+      <outboundRules>
+        <rule name="Add Remote User Header" preCondition="ResponseIsHtml1">
+          <match serverVariable="HTTP_X_REMOTE_USER" pattern=".*" />
+          <action type="Rewrite" value="{LOGON_USER}" />
+        </rule>
+        <preConditions>
+          <preCondition name="ResponseIsHtml1">
+            <add input="{RESPONSE_CONTENT_TYPE}" pattern="^text/html" />
+          </preCondition>
+        </preConditions>
+      </outboundRules>
+    </rewrite>
+
+  </system.webServer>
+</configuration>
