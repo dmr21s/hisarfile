@@ -1,17 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
-  <system.web>
-    <authentication mode="Windows" />
-    <authorization>
-      <deny users="?" /> <!-- Anonim kullanıcıları engelle -->
-    </authorization>
-  </system.web>
   <system.webServer>
+
+    <!-- Windows Authentication (NTLM only), Anonymous kapalı -->
     <security>
       <authentication>
+        <windowsAuthentication enabled="true" useKernelMode="true">
+          <providers>
+            <add value="NTLM" />
+            <remove value="Negotiate" />
+          </providers>
+          <extendedProtection tokenChecking="None" />
+        </windowsAuthentication>
         <anonymousAuthentication enabled="false" />
-        <windowsAuthentication enabled="true" />
       </authentication>
+
+      <!-- Anonymous kapalı olduğu için tüm kimliği doğrulanmış kullanıcılar geçer -->
+      <authorization>
+        <add accessType="Allow" users="*" />
+      </authorization>
     </security>
+
+    <!-- Backend'e proxy: http://localhost:5000 -->
+    <rewrite>
+      <rules>
+        <rule name="ReverseProxyToPort5000" enabled="true" stopProcessing="true">
+          <match url="(.*)" />
+          <action type="Rewrite" url="http://localhost:5000/{R:1}" logRewrittenUrl="true" />
+        </rule>
+      </rules>
+
+      <!-- Dışa giden yanıtlarda link/Location başlıklarını hostunuza göre düzelt -->
+      <outboundRules>
+        <!-- HTML içindeki mutlak linkler -->
+        <rule name="RewriteAbsoluteUrlsInHtml" preCondition="IsHtml">
+          <match filterByTags="A,Form,Img,Script,Link" pattern="^http(s)?://localhost:5000/(.*)" />
+          <action type="Rewrite" value="http{R:1}://{HTTP_HOST}/{R:2}" />
+        </rule>
+
+        <!-- Redirect/Location başlığı -->
+        <rule name="FixLocationHeader">
+          <match serverVariable="RESPONSE_Location" pattern="^http(s)?://localhost:5000/(.*)" />
+          <action type="Rewrite" value="http{R:1}://{HTTP_HOST}/{R:2}" />
+        </rule>
+
+        <preConditions>
+          <preCondition name="IsHtml">
+            <add input="{RESPONSE_CONTENT_TYPE}" pattern="^text/html" />
+          </preCondition>
+        </preConditions>
+      </outboundRules>
+    </rewrite>
+
+    <!-- Backend'in döndürdüğü hatayı aynen geçir -->
+    <httpErrors existingResponse="PassThrough" />
+
+    <!-- İsteğe bağlı küçük sertleştirme -->
+    <httpProtocol>
+      <customHeaders>
+        <add name="X-Content-Type-Options" value="nosniff" />
+      </customHeaders>
+    </httpProtocol>
+
   </system.webServer>
 </configuration>
