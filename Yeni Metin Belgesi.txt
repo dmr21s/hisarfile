@@ -1,11 +1,8 @@
-@app.before_request
-def inject_user():
-    user = request.environ.get("REMOTE_USER") or request.environ.get("AUTH_USER")
-    if user:
-        # Örn: 'MACHINE\demir' şeklinde gelir
-        username = user.split("\\")[-1].lower()
-        request.current_user = username
-        print(f"Giriş yapan kullanıcı: {username}")  # 👈 konsola yaz
-    else:
-        request.current_user = None
-        print("Kullanıcı bilgisi alınamadı")
+<rewrite>
+      <rules>
+        <rule name="ProxyToFlask" stopProcessing="true">
+          <match url="(.*)" />
+          <action type="Rewrite" url="http://localhost:5000/{R:1}" />
+        </rule>
+      </rules>
+    </rewrite>
