@@ -1,8 +1,1 @@
-<rewrite>
-      <rules>
-        <rule name="ProxyToFlask" stopProcessing="true">
-          <match url="(.*)" />
-          <action type="Rewrite" url="http://localhost:5000/{R:1}" />
-        </rule>
-      </rules>
-    </rewrite>
+https://apps.microsoft.com/detail/9p9tqf7mrm4r?hl=tr-TR&gl=TR
